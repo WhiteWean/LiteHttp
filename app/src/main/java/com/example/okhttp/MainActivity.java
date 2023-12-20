@@ -1,6 +1,7 @@
 package com.example.okhttp;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -11,6 +12,7 @@ import com.circlex.litehttp.Utils.SSLUtils;
 import com.circlex.litehttp.cache.CacheInterceptor;
 import com.circlex.litehttp.callback.StringCallback;
 import com.circlex.litehttp.cookie.CookieJarImpl;
+import com.circlex.litehttp.cookie.store.MemoryCookieStore;
 import com.circlex.litehttp.cookie.store.PrefsCookieStore;
 import com.circlex.litehttp.interceptor.LoggerInterceptor;
 
@@ -34,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void sendRequestWithOKHttp(){
-        String url = "https://www.google.com";
+        String url = "https://www.google.com/";
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
@@ -47,23 +49,28 @@ public class MainActivity extends AppCompatActivity {
         builder.addInterceptor(new CacheInterceptor(this));
 
         //Automatically manage cookies
-        //Use memory to keep cookies,.After exiting the app, cookies disappear.
-        //builder.cookieJar(new CookieJarImpl(new MemoryCookieStore()));
+        //Use memory to keep cookies.After exiting the app, cookies disappear.
+//        builder.cookieJar(new CookieJarImpl(new MemoryCookieStore()));
         //Use prefs to keep cookies.If they do not expire,it will remain valid.
         builder.cookieJar(new CookieJarImpl(new PrefsCookieStore(this)));
 
         //Enable SSL and configure your own TrustManager, bskFile, passwd or certificates.
+        //Also set trust for all host names
         SSLUtils.SSLParams sslParams = SSLUtils.getSSLSocketFactory(null, null, null);
-        builder.sslSocketFactory(sslParams.sslSocketFactory, sslParams.trustManager);
+        builder.sslSocketFactory(sslParams.sslSocketFactory, sslParams.trustManager)
+                .hostnameVerifier(SSLUtils.TrustAllHostVerifier);
+
+        //asynchronous request
         OkHttpManager
-                .initClient(builder.build())                  //Set OkhttpClient, not setting will use the default
+                .initClient(this, builder.build())                  //Must initClient, set OkhttpClient, not setting will use the default
+//                .initClient(this)
                 .get(url)
                 .setCache(true)                              //Set true to enable custom cache
                 .execute(new StringCallback() {              //Custom string callback function, we also provide defined callback for file and Bitemap.
                     @Override
                     public void onFailure(Throwable e) {
-                e.printStackTrace();
-            }
+                    e.printStackTrace();
+                     }
                     @Override
                     public void onSuccess(Response response){
                         try {
@@ -74,5 +81,27 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+
+        //synchronous request
+//        new Thread(){
+//            @Override
+//            public void run() {
+//                super.run();
+//                try {
+//                    Response response = OkHttpManager
+//                            .initClient(getBaseContext())
+//                            .get(url)
+//                            .execute();
+//                    if (response.isSuccessful()) {
+//                        String string = response.body().string();
+//                        Log.i("test", string);
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }.start();
+
     }
 }
+

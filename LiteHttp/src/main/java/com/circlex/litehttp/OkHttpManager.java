@@ -1,8 +1,11 @@
 package com.circlex.litehttp;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
+import com.circlex.litehttp.Utils.HttpUtils;
 import com.circlex.litehttp.Utils.SSLUtils;
 import com.circlex.litehttp.interceptor.LoggerInterceptor;
 import com.circlex.litehttp.request.DeleteRequest;
@@ -23,12 +26,15 @@ import okhttp3.OkHttpClient;
 public class OkHttpManager  {
 
     public static final long DEFAULT_TIMEOUT = 60;     //Default timeout time
-    private static volatile OkHttpManager mInstance;
+    public static volatile OkHttpManager mInstance;
     private OkHttpClient okHttpClient;
     private final android.os.Handler handler;
+    private Context context;
+    public static final String VERSION = "1.0.1";
 
-    private OkHttpManager (OkHttpClient okHttpClient){
+    private OkHttpManager (Context context, OkHttpClient okHttpClient){
         handler = new Handler(Looper.getMainLooper());
+        this.context = context;
         if (okHttpClient == null){
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
             LoggerInterceptor loggerInterceptor = new LoggerInterceptor("OkHttpManager", LoggerInterceptor.Level.BODY, Level.INFO);
@@ -38,7 +44,8 @@ public class OkHttpManager  {
                     .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
                     .writeTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
                     .addInterceptor(loggerInterceptor)
-                    .sslSocketFactory(sslParams.sslSocketFactory, sslParams.trustManager);
+                    .sslSocketFactory(sslParams.sslSocketFactory, sslParams.trustManager)
+                    .hostnameVerifier(SSLUtils.TrustAllHostVerifier);;
             this.okHttpClient = builder.build();
         } else {
           this.okHttpClient = okHttpClient;
@@ -47,15 +54,15 @@ public class OkHttpManager  {
     }
 
     /** Construct client instance */
-    public static OkHttpManager initClient(OkHttpClient... okHttpClient){
+    public static OkHttpManager initClient(Context context, OkHttpClient... okHttpClient){
         if (mInstance == null)
         {
             synchronized (OkHttpManager.class) {
                 if (mInstance == null) {
                     if (okHttpClient == null || okHttpClient.length == 0){
-                        mInstance = new OkHttpManager(null);
+                        mInstance = new OkHttpManager(context,null);
                     } else {
-                    mInstance = new OkHttpManager(okHttpClient[0]);
+                    mInstance = new OkHttpManager(context, okHttpClient[0]);
                     }
                 }
             }
@@ -79,6 +86,9 @@ public class OkHttpManager  {
         return handler;
     }
 
+    public Context getContext() {
+        return context;
+    }
     /** get request */
     public static GetRequest get(String url){
         return new GetRequest(url);

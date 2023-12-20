@@ -25,10 +25,10 @@ public abstract class BaseRequest<T extends BaseRequest> {
     protected Map<String, String> headersMap = new HashMap<>();  //Store headers
     protected Map<String, String> urlParamsMap = new HashMap<>();   //Store url params
     protected String baseUrl;
-    protected transient OkHttpClient client;
+    protected transient OkHttpClient client = OkHttpManager.mInstance.getOkHttpClient();
     protected transient okhttp3.Request mRequest;
     protected transient BaseCallback callback;
-    protected transient android.os.Handler handler;
+    protected transient android.os.Handler handler = OkHttpManager.mInstance.getHandler();
 
 
     public BaseRequest(String url){
@@ -86,8 +86,7 @@ public abstract class BaseRequest<T extends BaseRequest> {
        }else {
            mRequest = generateRequest(null);
        }
-        if (client == null) client = OkHttpManager.initClient().getOkHttpClient();
-        return client.newCall(mRequest);
+       return client.newCall(mRequest);
     }
 
     /** Normal call, blocking method, synchronous request execution **/
@@ -98,9 +97,6 @@ public abstract class BaseRequest<T extends BaseRequest> {
     /** Non blocking method, asynchronous request, but callback executed in sub thread **/
     public void execute(BaseCallback callback){
         if (callback == null) throw new NullPointerException("callback == null");
-        if (handler == null){
-            handler = OkHttpManager.initClient().getHandler();
-        }
         Call call = getCall();
         call.enqueue(new Callback() {
             @Override

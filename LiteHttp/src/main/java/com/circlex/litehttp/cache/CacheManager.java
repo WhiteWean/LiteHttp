@@ -86,6 +86,7 @@ public class CacheManager {
         InputStream is = null;
         ByteArrayOutputStream bos = null;
         try {
+            key = hashKeyForDisk(key);
             DiskLruCache.Snapshot snapshot = diskLruCache.get(key);
             if (snapshot != null){
                 is = snapshot.getInputStream(0);

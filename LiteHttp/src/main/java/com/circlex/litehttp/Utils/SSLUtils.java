@@ -1,19 +1,24 @@
 package com.circlex.litehttp.Utils;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -99,6 +104,7 @@ public class SSLUtils {
         return null;
     }
 
+
     /** Solve the problem of clients not trusting server digital certificates
      * Make the client not perform any checks on the certificate
      */
@@ -147,6 +153,8 @@ public class SSLUtils {
             return new X509Certificate[0];
         }
     }
+
+    public static HostnameVerifier TrustAllHostVerifier = (hostname, session) -> true;
 }
 
 

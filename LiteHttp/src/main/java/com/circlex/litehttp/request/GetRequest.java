@@ -21,7 +21,7 @@ public class GetRequest extends BaseRequest<GetRequest> {
     public Request generateRequest(RequestBody requestBody) {
         Request.Builder requestBuilder = new Request.Builder();
         if (urlParamsMap != null) url = HttpUtils.appendParams(baseUrl, urlParamsMap);
-        if (headersMap != null) {
+        if (headersMap != null && !headersMap.isEmpty()) {
             Headers headers = HttpUtils.appendHeaders(headersMap);
             requestBuilder.headers(headers);
         }
